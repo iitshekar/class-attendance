@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Class check-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--paper:#F4F6F2;--card:#FFFFFF;--ink:#17283A;--muted:#5A6A79;--line:#D6DCD4;--accent:#1D4F7C;--accent-ink:#FFFFFF;--p:#1F6B45;--p-bg:#E1F0E6;--a:#A3302A;--a-bg:#F7E3E0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#121A22;--card:#1A242E;--ink:#E7EDF2;--muted:#9AA9B6;--line:#2C3A47;--accent:#7FB3E6;--accent-ink:#0E1A26;--p:#7FD3A2;--p-bg:#173226;--a:#F2958D;--a-bg:#3A1E1C}}
+:root[data-theme="dark"]{--paper:#121A22;--card:#1A242E;--ink:#E7EDF2;--muted:#9AA9B6;--line:#2C3A47;--accent:#7FB3E6;--accent-ink:#0E1A26;--p:#7FD3A2;--p-bg:#173226;--a:#F2958D;--a-bg:#3A1E1C}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+h1{font-size:1.15rem;margin:0}
+h2{font-size:1.5rem;margin:0 0 .4rem}
+main{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+input,select{width:100%;font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px 18px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hint{color:var(--muted);font-size:.92rem;margin:.4rem 0}
+.msg{margin-top:12px;min-height:1.4em}.msg.bad{color:var(--a)}.msg.good{color:var(--p)}
+.classes{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.classes button{font-size:1.3rem;padding:18px 26px;min-width:110px}
+.live{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.live{grid-template-columns:1fr}}
+.board{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#qr{background:#fff;padding:16px;border-radius:12px;line-height:0}
+#qr img,#qr canvas{width:min(70vw,340px)!important;height:auto!important}
+.code{font-size:2.6rem;font-weight:700;letter-spacing:.12em;margin:14px 0 0}
+.reg-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.count{font-weight:700;font-size:1.1rem}
+ul.names{list-style:none;padding:0;margin:12px 0;max-height:55vh;overflow:auto}
+ul.names li+li{margin-top:6px}
+.name{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;padding:10px 14px;border-radius:10px;font-weight:400}
+.name.P{background:var(--p-bg);color:var(--ink);border-left:6px solid var(--p)}
+.name.A{background:var(--a-bg);color:var(--ink);border-left:6px solid var(--a)}
+.name b{font-weight:700}.name small{color:var(--muted);white-space:nowrap}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+pre{white-space:pre-wrap;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;font:inherit;overflow-x:auto}
+.student{max-width:460px;margin:6vh auto 0;text-align:center}
+.student .big{font-size:3rem;margin:.2rem 0}
+.student button{width:100%;font-size:1.25rem;padding:16px;margin-top:16px}
+.pending{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;background:var(--paper)}
+.pending h3{margin:0 0 8px;font-size:1.05rem}
+.pending li{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0}
+.pending li+li{border-top:1px solid var(--line)}
+.pending .warn{color:var(--a);font-size:.9rem;display:block}
+.pending button{padding:8px 14px}
+.banner{background:var(--p-bg);border-left:6px solid var(--p);border-radius:10px;padding:10px 14px;margin:10px 0}
+.tick{font-size:4rem;line-height:1;color:var(--p);margin:10px 0 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><h1 id="title">Class check-in</h1><button id="settingsBtn" class="ghost" hidden>Settings</button></header>
+<main>
+
+<section id="setup" hidden>
+  <div class="card" style="max-width:560px">
+    <h2>Connect your attendance sheet</h2>
+    <p class="hint">Paste the web app link from Apps Script and the teacher key from setup(). They stay on this device only.</p>
+    <form id="setupForm">
+      <label for="apiUrl">Web app link</label>
+      <input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" required>
+      <label for="apiKey">Teacher key</label>
+      <input id="apiKey" type="password" required>
+      <div class="actions"><button type="submit">Connect</button></div>
+      <p class="msg" id="setupMsg"></p>
+    </form>
+  </div>
+</section>
+
+<section id="pick" hidden>
+  <h2>Choose a class</h2>
+  <div class="classes" id="classList"></div>
+  <p class="msg" id="pickMsg"></p>
+</section>
+
+<section id="live" hidden>
+  <div class="live">
+    <div class="card board">
+      <div id="qr" aria-label="Check-in QR code"></div>
+      <p class="code" id="codeText">------</p>
+      <p class="hint">Scan with your tablet camera. New code in <span id="secs">30</span>s.</p>
+    </div>
+    <div class="card">
+      <div class="reg-head"><h2 id="liveCls"></h2><span class="count" id="count"></span></div>
+      <p class="banner" id="savedNote" hidden></p>
+      <div class="pending" id="pendingBox" hidden>
+        <h3>New tablets waiting for you</h3>
+        <ul id="pendingList" style="list-style:none;padding:0;margin:0"></ul>
+      </div>
+      <p class="hint">Tap a name to switch present or absent.</p>
+      <ul class="names" id="roster"></ul>
+      <p class="msg" id="liveMsg"></p>
+      <div class="actions">
+        <button id="backBtn" class="ghost">Change class</button>
+        <button id="reviewBtn">Finish and review absentees</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="review" hidden>
+  <div class="card" style="max-width:620px">
+    <h2 id="reviewTitle">Absentees</h2>
+    <p class="hint">Check this list. Tap a name to mark that student present instead.</p>
+    <ul class="names" id="absentList"></ul>
+    <p class="msg" id="reviewMsg"></p>
+    <div class="actions">
+      <button id="reopenBtn" class="ghost">Back to register</button>
+      <button id="approveBtn">Approve and save</button>
+    </div>
+  </div>
+</section>
+
+<section id="done" hidden>
+  <div class="card" style="max-width:620px">
+    <h2>Saved to your attendance sheet</h2>
+    <p class="hint">Now switch these students to Absent in Nexquare and save.</p>
+    <pre id="nexText"></pre>
+    <div class="actions">
+      <button id="waBtn">Send to my WhatsApp</button>
+      <button id="copyBtn" class="ghost">Copy list</button>
+      <button id="lateBtn" class="ghost">Show QR for late arrivals</button>
+      <button id="newBtn" class="ghost">Change class</button>
+    </div>
+    <p class="msg" id="doneMsg"></p>
+  </div>
+</section>
+
+<section id="student" hidden>
+  <div class="card student">
+    <p class="hint">Class</p>
+    <p class="big" id="stuCls"></p>
+
+    <form id="stuForm" hidden>
+      <p>First time on this tablet. Choose your name to link this tablet to you.</p>
+      <label for="stuName">Your name</label>
+      <select id="stuName" required><option value="">Choose your name</option></select>
+      <p class="hint">You can only do this once. Your teacher will approve it.</p>
+      <button type="submit" id="stuBtn">Link this tablet to me</button>
+    </form>
+
+    <div id="stuIn" hidden>
+      <p class="tick" aria-hidden="true">&#10003;</p>
+      <h2 id="stuInName"></h2>
+      <p id="stuInTime"></p>
+    </div>
+
+    <p class="msg" id="stuMsg">Loading…</p>
+  </div>
+</section>
+
+</main>
+<script>
+const MY_WHATSAPP = '971581608369';
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function show(id){ document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== id); }
+function say(id, text, kind){ const el = $(id); el.textContent = text || ''; el.className = 'msg' + (kind ? ' ' + kind : ''); }
+async function api(url, body){
+  let r;
+  try { r = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) }); }
+  catch(e){ throw new Error('No connection. Check the internet and try again.'); }
+  let j; try { j = await r.json(); } catch(e){ throw new Error('Could not reach the attendance sheet.'); }
+  if (!j.ok) throw new Error(j.error || 'Request failed.');
+  return j;
+}
+
+/* ================= Student ================= */
+function deviceId(){
+  let d = store.get('att-device');
+  if (!d){
+    d = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    store.set('att-device', d);
+    if (store.get('att-device') !== d) d = '';   // storage blocked (private browsing)
+  }
+  return d;
+}
+
+async function studentMode(){
+  show('student');
+  $('title').textContent = 'Check in';
+  const cls = qs.get('cls'), code = qs.get('code'), url = qs.get('api');
+  const device = deviceId();
+  $('stuCls').textContent = cls;
+  let waitT = null, waitUntil = 0;
+
+  function render(j){
+    $('stuForm').hidden = true; $('stuIn').hidden = true; clearInterval(waitT);
+    switch (j.state){
+      case 'new':
+        $('stuName').innerHTML = '<option value="">Choose your name</option>' + j.roster.map(n => `<option>${esc(n)}</option>`).join('');
+        $('stuForm').hidden = false; say('stuMsg', ''); break;
+      case 'pending':
+        say('stuMsg', `Waiting for your teacher to approve this tablet for ${j.name}…`);
+        waitUntil = Date.now() + 5 * 60 * 1000;
+        waitT = setInterval(async () => {
+          if (Date.now() > waitUntil){ clearInterval(waitT); say('stuMsg', 'Still waiting. Ask your teacher to approve, then scan the board again.'); return; }
+          try { const s = await api(url, { action:'mystate', cls, device }); if (s.state !== 'pending') render(s); } catch(e){}
+        }, 4000);
+        break;
+      case 'in':
+        $('stuInName').textContent = j.name;
+        $('stuInTime').textContent = (j.late ? 'Checked in late at ' : 'Checked in at ') + j.time;
+        $('stuIn').hidden = false; say('stuMsg', ''); break;
+      case 'approved':
+        say('stuMsg', `This tablet is linked to ${j.name}. Scan the board again to check in.`, 'good'); break;
+      case 'replaced':
+        say('stuMsg', 'A newer tablet is linked to you now. Use that tablet, or speak to your teacher.', 'bad'); break;
+      case 'rejected':
+        say('stuMsg', 'Your teacher did not approve this tablet. Please speak to your teacher.', 'bad'); break;
+      default:
+        say('stuMsg', 'Scan the code on the board again.', 'bad');
+    }
+  }
+
+  try { render(await api(url, { action:'scan', cls, code, device })); }
+  catch(e){ say('stuMsg', e.message, 'bad'); }
+
+  $('stuForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const name = $('stuName').value; if (!name) return;
+    if (!confirm(`Link this tablet to ${name}? You can't change it later.`)) return;
+    $('stuBtn').disabled = true; say('stuMsg', 'Sending to your teacher…');
+    try { render(await api(url, { action:'register', cls, code, device, name })); }
+    catch(e){ say('stuMsg', e.message, 'bad'); }
+    $('stuBtn').disabled = false;
+  };
+}
+
+/* ================= Teacher ================= */
+let cfg = { url: store.get('att-url') || '', key: store.get('att-key') || '' };
+let cls = null, roster = [], checked = new Map(), linked = new Set(), override = new Map();
+let lastCode = null, secs = 30, pollT = null, tickT = null, busy = false;
+
+function stopPoll(){ clearInterval(pollT); clearInterval(tickT); pollT = tickT = null; }
+function openSetup(){ stopPoll(); $('apiUrl').value = cfg.url; $('apiKey').value = cfg.key; show('setup'); }
+
+$('setupForm').onsubmit = async e => {
+  e.preventDefault();
+  const next = { url: $('apiUrl').value.trim(), key: $('apiKey').value.trim() };
+  say('setupMsg', 'Connecting…');
+  try {
+    const j = await api(next.url, { action:'classes', secret: next.key });
+    cfg = next; store.set('att-url', cfg.url); store.set('att-key', cfg.key); say('setupMsg', '');
+    renderClasses(j.classes);
+  } catch(err){ say('setupMsg', err.message, 'bad'); }
+};
+
+async function loadClasses(){
+  stopPoll();
+  try { const j = await api(cfg.url, { action:'classes', secret: cfg.key }); renderClasses(j.classes); }
+  catch(e){ openSetup(); say('setupMsg', e.message, 'bad'); }
+}
+function renderClasses(list){
+  if (list.length === 1) return startClass(list[0]);
+  $('classList').innerHTML = list.map(c => `<button data-c="${esc(c)}">${esc(c)}</button>`).join('');
+  $('classList').querySelectorAll('button').forEach(b => b.onclick = () => startClass(b.dataset.c));
+  say('pickMsg', list.length ? '' : 'No classes yet. Add rows to the Roster tab of your sheet (Class, Student), then reload.');
+  show('pick');
+}
+
+function startClass(c){
+  cls = c; override = new Map(); lastCode = null;
+  $('liveCls').textContent = c; say('liveMsg', 'Loading…');
+  show('live'); stopPoll(); poll();
+  pollT = setInterval(poll, 4000);
+  tickT = setInterval(() => { secs = Math.max(0, secs - 1); $('secs').textContent = secs; }, 1000);
+}
+
+async function poll(){
+  if (busy) return; busy = true;
+  try {
+    const j = await api(cfg.url, { action:'status', secret: cfg.key, cls });
+    roster = j.roster; secs = j.secondsLeft; $('secs').textContent = secs;
+    checked = new Map(j.checkedIn.map(x => [x.name, x]));
+    linked = new Set(j.linked);
+    if (j.code !== lastCode){
+      lastCode = j.code;
+      const link = location.origin + location.pathname + '?cls=' + encodeURIComponent(cls) + '&code=' + j.code + '&api=' + encodeURIComponent(cfg.url);
+      $('qr').innerHTML = '';
+      new QRCode($('qr'), { text: link, width: 340, height: 340, correctLevel: QRCode.CorrectLevel.M });
+      $('codeText').textContent = j.code.slice(0,3) + ' ' + j.code.slice(3);
+    }
+    $('savedNote').hidden = !j.savedAt;
+    if (j.savedAt) $('savedNote').textContent = `Register saved at ${j.savedAt}. New check-ins are recorded as late.`;
+    renderPending(j.pending);
+    say('liveMsg', ''); renderRoster();
+  } catch(e){ say('liveMsg', e.message + ' Retrying…', 'bad'); }
+  busy = false;
+}
+
+function renderPending(list){
+  $('pendingBox').hidden = !list.length;
+  $('pendingList').innerHTML = list.map(p => `<li><span><b>${esc(p.name)}</b>${p.second ? '<span class="warn">Already has a tablet. Approve only if it is a replacement.</span>' : ''}</span>
+    <span class="actions" style="margin:0"><button class="ghost" data-d="${esc(p.device)}" data-x="reject">Reject</button><button data-d="${esc(p.device)}" data-x="approve">Approve</button></span></li>`).join('');
+  $('pendingList').querySelectorAll('button').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { await api(cfg.url, { action:'device', secret: cfg.key, device: b.dataset.d, decision: b.dataset.x }); }
+    catch(e){ say('liveMsg', e.message, 'bad'); }
+    poll();
+  });
+}
+
+function statusOf(n){ return override.has(n) ? override.get(n) : (checked.has(n) ? 'P' : 'A'); }
+function flip(n){
+  const next = statusOf(n) === 'P' ? 'A' : 'P';
+  const natural = checked.has(n) ? 'P' : 'A';
+  if (next === natural) override.delete(n); else override.set(n, next);
+}
+function note(n){
+  if (override.has(n)) return override.get(n) === 'P' ? 'Marked present by you' : 'Marked absent by you';
+  if (checked.has(n)){ const c = checked.get(n); return (c.late ? 'Late ' : 'Checked in ') + c.time; }
+  return linked.has(n) ? 'Not checked in' : 'No tablet linked yet';
+}
+function renderRoster(){
+  $('roster').innerHTML = roster.map((n,i) => `<li><button class="name ${statusOf(n)}" data-i="${i}"><b>${esc(n)}</b><small>${esc(note(n))}</small></button></li>`).join('');
+  $('roster').querySelectorAll('button').forEach(b => b.onclick = () => { flip(roster[b.dataset.i]); renderRoster(); });
+  const p = roster.filter(n => statusOf(n) === 'P').length;
+  $('count').textContent = `${p} of ${roster.length} present`;
+}
+
+function openReview(){
+  stopPoll();
+  $('reviewTitle').textContent = `Absentees in ${cls}`;
+  renderAbsent(); say('reviewMsg', ''); show('review');
+}
+function renderAbsent(){
+  const absent = roster.filter(n => statusOf(n) === 'A');
+  $('absentList').innerHTML = absent.length
+    ? absent.map(n => `<li><button class="name A" data-n="${esc(n)}"><b>${esc(n)}</b><small>Tap if present</small></button></li>`).join('')
+    : '<li class="hint">Everyone is present.</li>';
+  $('absentList').querySelectorAll('button').forEach(b => b.onclick = () => { flip(b.dataset.n); renderAbsent(); });
+}
+
+function niceDate(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y, m-1, d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+$('approveBtn').onclick = async () => {
+  const absent = roster.filter(n => statusOf(n) === 'A');
+  $('approveBtn').disabled = true; say('reviewMsg', 'Saving…');
+  try {
+    const j = await api(cfg.url, { action:'approve', secret: cfg.key, cls, absent, present: roster.length - absent.length });
+    const head = `Absent – ${cls} – ${niceDate(j.date)}`;
+    const tail = `Present: ${roster.length - absent.length} / ${roster.length}`;
+    $('nexText').textContent = absent.length
+      ? head + '\n' + absent.map((n,i) => `${i+1}. ${n}`).join('\n') + '\n' + tail
+      : `${cls} – ${niceDate(j.date)}\nNo absentees today.\n${tail}`;
+    say('doneMsg', ''); show('done');
+  } catch(e){ say('reviewMsg', e.message, 'bad'); }
+  $('approveBtn').disabled = false;
+};
+
+$('waBtn').onclick = () => { location.href = 'https://wa.me/' + MY_WHATSAPP + '?text=' + encodeURIComponent($('nexText').textContent); };
+$('copyBtn').onclick = async () => {
+  try { await navigator.clipboard.writeText($('nexText').textContent); say('doneMsg', 'Copied.', 'good'); }
+  catch(e){ say('doneMsg', 'Copy is blocked here. Select the text and copy it.', 'bad'); }
+};
+$('lateBtn').onclick = () => startClass(cls);
+$('newBtn').onclick = () => { stopPoll(); $('classList').innerHTML=''; loadClassesPick(); };
+async function loadClassesPick(){
+  try {
+    const j = await api(cfg.url, { action:'classes', secret: cfg.key });
+    $('classList').innerHTML = j.classes.map(c => `<button data-c="${esc(c)}">${esc(c)}</button>`).join('');
+    $('classList').querySelectorAll('button').forEach(b => b.onclick = () => startClass(b.dataset.c));
+    show('pick');
+  } catch(e){ say('doneMsg', e.message, 'bad'); }
+}
+$('backBtn').onclick = () => { stopPoll(); loadClassesPick(); };
+$('reviewBtn').onclick = openReview;
+$('reopenBtn').onclick = () => startClass(cls);
+$('settingsBtn').onclick = openSetup;
+
+if (qs.get('cls') && qs.get('code') && qs.get('api')) studentMode();
+else { $('settingsBtn').hidden = false; if (cfg.url && cfg.key) loadClasses(); else openSetup(); }
+</script>
+</body>
+</html>
